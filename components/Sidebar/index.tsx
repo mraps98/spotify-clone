@@ -6,11 +6,26 @@ import {
   HeartIcon,
   RssIcon,
 } from '@heroicons/react/outline';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import { useSpotify } from '../../hooks/spotify';
 
 const Sidebar = () => {
+  const spotifyService = useSpotify();
+  const { data: session } = useSession();
+  const [playlists, setPlaylists] = useState<
+    Array<SpotifyApi.PlaylistObjectSimplified>
+  >([]);
+
+  useEffect(() => {
+    if (spotifyService.getAccessToken()) {
+      spotifyService.getUserPlaylists().then((data) => {
+        setPlaylists(data.body.items);
+      });
+    }
+  }, [session, spotifyService]);
   return (
-    <div className="text-gray-500 p-5 text-xs border-r border-gray-900">
+    <div className="text-gray-500 p-5 text-xs border-r border-gray-900 overflow-y-scroll h-screen scrollbar-hide">
       <div className="space-y-4">
         <button
           className="flex items-center space-x-2 hover:text-white"
@@ -46,17 +61,11 @@ const Sidebar = () => {
 
         <hr className="border-t-[0.1px] border-gray-900" />
         {/* Custom Playlists */}
-        <p className="cursor-pointer hover:text-white">Playlist name...</p>
-        <p className="cursor-pointer hover:text-white">Playlist name...</p>
-        <p className="cursor-pointer hover:text-white">Playlist name...</p>
-        <p className="cursor-pointer hover:text-white">Playlist name...</p>
-        <p className="cursor-pointer hover:text-white">Playlist name...</p>
-        <p className="cursor-pointer hover:text-white">Playlist name...</p>
-        <p className="cursor-pointer hover:text-white">Playlist name...</p>
-        <p className="cursor-pointer hover:text-white">Playlist name...</p>
-        <p className="cursor-pointer hover:text-white">Playlist name...</p>
-        <p className="cursor-pointer hover:text-white">Playlist name...</p>
-        <p className="cursor-pointer hover:text-white">Playlist name...</p>
+        {playlists.map((playlist) => (
+          <p key={playlist.id} className="cursor-pointer hover:text-white">
+            {playlist.name}
+          </p>
+        ))}
       </div>
     </div>
   );
