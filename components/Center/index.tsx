@@ -3,6 +3,10 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { shuffle } from 'lodash';
+import { playlistIdState, playlistState } from '../../atoms/playlistAtom';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { useSpotify } from '../../hooks/spotify';
+import Songs from './Songs';
 
 const colorsForGradient = [
   'indigo',
@@ -15,16 +19,24 @@ const colorsForGradient = [
 ];
 
 const Center = () => {
+  const spotifyService = useSpotify();
   const { data: session } = useSession();
   const [gradientFromColor, setGradientFromColor] = useState('green');
+  const currentPlaylistId = useRecoilValue(playlistIdState);
+  const [currentPlaylist, setCurrentPlaylist] = useRecoilState(playlistState);
+
+  useEffect(() => {
+    if (spotifyService.getAccessToken()) {
+      spotifyService.getPlaylist(currentPlaylistId).then((data) => {
+        console.log(data.body);
+        setCurrentPlaylist(data.body);
+      });
+    }
+  }, [spotifyService, currentPlaylistId]);
 
   useEffect(() => {
     setGradientFromColor(`from-${shuffle(colorsForGradient).pop()!}-500`);
-  }, []);
-
-  useEffect(() => {
-    console.log(gradientFromColor);
-  }, [gradientFromColor]);
+  }, [currentPlaylistId]);
 
   return (
     <div className="flex-grow">
@@ -45,8 +57,22 @@ const Center = () => {
       <section
         className={`flex items-end space-x-7 bg-gradient-to-b to-black ${gradientFromColor} h-80 text-white p-8`}
       >
-        {/* <Image src="" alt=""/> */}
+        <img
+          src={currentPlaylist?.images?.[0]?.url}
+          alt={currentPlaylist?.name}
+          className="shadow-2xl w-44 h-44"
+        />
+        <div>
+          <p>PLAYLIST</p>
+          <h1 className="text-2xl md:text-3xl xl:text-5xl">
+            {currentPlaylist?.name}
+          </h1>
+        </div>
       </section>
+
+      <div>
+        <Songs />
+      </div>
     </div>
   );
 };
