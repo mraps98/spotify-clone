@@ -1,11 +1,11 @@
 import { ChevronDownIcon } from '@heroicons/react/outline';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { shuffle } from 'lodash';
 import { playlistIdState, playlistState } from '../../atoms/playlistAtom';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { useSpotify } from '../../hooks/spotify';
+import { useSpotify } from '../../hooks/useSpotify';
 import Songs from './Songs';
 
 const colorsForGradient = [
@@ -39,8 +39,11 @@ const Center = () => {
 
   return (
     <div className="flex-grow h-screen overflow-y-scroll scrollbar-hide">
-      <header className="absolute top-5 right-8">
-        <div className="flex items-center bg-black space-x-3 text-white opacity-90 hover:opacity-80 cursor-pointer rounded-full p-1 pr-2">
+      <header className="absolute top-5 right-8 cursor-pointer">
+        <div
+          onClick={() => signOut()}
+          className="flex items-center bg-black space-x-3 text-white opacity-90 hover:opacity-80 cursor-pointer rounded-full p-1 pr-2"
+        >
           <Image
             src={session?.user?.image || '/images/avatar.png'}
             height={40}
