@@ -28,7 +28,6 @@ const Center = () => {
   useEffect(() => {
     if (spotifyService.getAccessToken()) {
       spotifyService.getPlaylist(currentPlaylistId).then((data) => {
-        console.log(data.body);
         setCurrentPlaylist(data.body);
       });
     }
@@ -39,7 +38,7 @@ const Center = () => {
   }, [currentPlaylistId]);
 
   return (
-    <div className="flex-grow">
+    <div className="flex-grow h-screen overflow-y-scroll scrollbar-hide">
       <header className="absolute top-5 right-8">
         <div className="flex items-center bg-black space-x-3 text-white opacity-90 hover:opacity-80 cursor-pointer rounded-full p-1 pr-2">
           <Image
