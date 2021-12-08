@@ -37,8 +37,8 @@ const Song: FC<ISongProps> = ({ order, track }) => {
         <p>{order + 1}</p>
         <img
           className="h-10 w-10"
-          src={track.track.album.images[0].url}
-          alt={track.track.name}
+          src={track?.track?.album?.images?.[0]?.url}
+          alt={track?.track?.name}
         />
         <div>
           <p className="w-36 lg:w-64 truncate text-white">{track.track.name}</p>
