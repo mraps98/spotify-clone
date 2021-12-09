@@ -1,5 +1,11 @@
 import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import {
+  ChangeEventHandler,
+  MouseEventHandler,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { useRecoilState } from 'recoil';
 import { currentTrackIdState, isPlayingState } from '../../atoms/songAtom';
 import { useSongInfo } from '../../hooks/useSongInfo';
@@ -7,7 +13,7 @@ import { useSpotify } from '../../hooks/useSpotify';
 import {
   HeartIcon,
   VolumeUpIcon as VolumeDownIcon,
-} from '@heroicons/react/ouline';
+} from '@heroicons/react/outline';
 import {
   RewindIcon,
   SwitchHorizontalIcon,
@@ -17,6 +23,7 @@ import {
   ReplyIcon,
   VolumeUpIcon,
 } from '@heroicons/react/solid';
+import { debounce } from 'lodash';
 
 const Player = () => {
   const spotifyService = useSpotify();
@@ -34,9 +41,24 @@ const Player = () => {
     }
   }, [currentTrackId, spotifyService, session]);
 
+  useEffect(() => {
+    if (volume > 0 && volume < 100) {
+      debouncedAdjustVolume(volume);
+    }
+  }, [volume]);
+
+  const debouncedAdjustVolume = useCallback(
+    debounce((volume) => {
+      spotifyService
+        .setVolume(volume)
+        .catch((err) => console.log('Premium required'));
+    }, 500),
+    []
+  );
+
   const handlePlayPause = () => {
     spotifyService.getMyCurrentPlaybackState().then((data) => {
-      if (data.body.is_playing) {
+      if (data.body?.is_playing) {
         spotifyService
           .pause()
           .catch(() =>
@@ -63,6 +85,18 @@ const Player = () => {
         setIsPlaying(data.body?.is_playing);
       });
     }
+  };
+
+  const handleChangeVolume: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setVolume(Number(e.target.value));
+  };
+
+  const handleClickVolumeDown: MouseEventHandler<SVGSVGElement> = () => {
+    volume > 0 && setVolume(volume - 10);
+  };
+
+  const handleClickVolumeUp: MouseEventHandler<SVGSVGElement> = () => {
+    volume < 100 && setVolume(volume + 10);
   };
 
   return (
@@ -96,6 +130,26 @@ const Player = () => {
             onClick={handlePlayPause}
           />
         )}
+
+        <FastForwardIcon className="player-button" />
+
+        <ReplyIcon className="player-button" />
+      </div>
+
+      <div className="flex items-center space-x-3 md:space-x-4 justify-end pr-5">
+        <VolumeDownIcon
+          className="player-button"
+          onClick={handleClickVolumeDown}
+        />
+        <input
+          type="range"
+          value={volume}
+          min={0}
+          max={100}
+          className="w-14 md:w-28"
+          onChange={handleChangeVolume}
+        />
+        <VolumeUpIcon className="player-button" onClick={handleClickVolumeUp} />
       </div>
     </div>
   );
